@@ -67,3 +67,10 @@ Default Microsoft logger. The category `Microsoft.EntityFrameworkCore` is set to
 ## Smoke test
 
 Run the app: the window shows the grid with 1000 rows, no `Id` column, and the log has no SQL output.
+
+## Implementation notes
+
+- Packages: Avalonia 12.1.5, Avalonia.Controls.DataGrid 12.1.2 (a v12 build exists, so the DataGrid is used as decided), CommunityToolkit.Mvvm 8.4.2, EF Core 10.0.14.
+- `DesignTimeDbContextFactory` lets `dotnet ef` create migrations without starting the Avalonia app.
+- `ItemsViewModel` receives `GridViewModel` through DI and exposes it as `Grid`; `ItemsView` binds it as the `GridView` data context. `GridView` triggers the load when it is shown.
+- The build prints an "Avalonia Accelerate Community requires telemetry" notice; it comes from the Avalonia package and is not configurable on the free tier.

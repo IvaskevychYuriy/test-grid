@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:TestGrid.ViewModels"
+             x:Class="TestGrid.Views.GridView"
+             x:DataType="vm:GridViewModel">
+  <DataGrid ItemsSource="{Binding Items}"
+            AutoGenerateColumns="False"
+            IsReadOnly="True"
+            CanUserSortColumns="False">
+    <DataGrid.Columns>
+      <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name, x:DataType=vm:ItemViewModel}" />
+      <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity, x:DataType=vm:ItemViewModel}" />
+      <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=F2, x:DataType=vm:ItemViewModel}" />
+      <DataGridTextColumn Header="Modified (UTC)" Width="180" Binding="{Binding ModifiedOn, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}', x:DataType=vm:ItemViewModel}" />
+    </DataGrid.Columns>
+  </DataGrid>
+</UserControl>

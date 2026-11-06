@@ -1,0 +1,11 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TestGrid.ViewModels"
+        xmlns:views="using:TestGrid.Views"
+        x:Class="TestGrid.Views.MainWindow"
+        x:DataType="vm:ItemsViewModel"
+        Title="Test Grid"
+        Width="800"
+        Height="600">
+  <views:ItemsView />
+</Window>
