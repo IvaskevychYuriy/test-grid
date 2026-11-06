@@ -27,3 +27,10 @@ The generator makes 50% of rows match the filter (`Name` starts with `"pc part"`
 ## Smoke test
 
 The grid shows only rows with a `pc part` name and quantity above 10; the description label is visible.
+
+## Implementation notes
+
+- `GridViewModel.Filter` is an `Expression<Func<Item, bool>>` and `GridViewModel.Sort` is a `Func<IQueryable<Item>, IOrderedQueryable<Item>>`. `ItemsViewModel` sets them on the `GridViewModel` it owns; the `GridView` binds to that view model, so this is how the conditions reach the component.
+- Seed constants (`"pc part"`, quantity threshold 10) live in `PcPartCriteria`, shared by the page and the seeder.
+- `StartsWith` becomes SQL `LIKE 'pc part%'`, which SQLite evaluates case-insensitively for ASCII. Generated names never differ from the prefix only by case, so this does not affect the results.
+- Feature 2 needs cursor conditions derived from the sort. The delegate-based sort is expected to be replaced by a structured sort definition then.

@@ -4,5 +4,12 @@
              xmlns:views="using:TestGrid.Views"
              x:Class="TestGrid.Views.ItemsView"
              x:DataType="vm:ItemsViewModel">
-  <views:GridView DataContext="{Binding Grid}" />
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top"
+               Margin="8"
+               FontWeight="Bold"
+               TextWrapping="Wrap"
+               Text="{Binding ConditionsDescription}" />
+    <views:GridView DataContext="{Binding Grid}" />
+  </DockPanel>
 </UserControl>

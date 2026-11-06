@@ -1,8 +1,20 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using TestGrid.Data;
 
 namespace TestGrid.ViewModels;
 
-public class ItemsViewModel(GridViewModel grid) : ObservableObject
+public class ItemsViewModel : ObservableObject
 {
-    public GridViewModel Grid { get; } = grid;
+    public ItemsViewModel(GridViewModel grid)
+    {
+        Grid = grid;
+        Grid.Filter = item => item.Quantity > PcPartCriteria.QuantityThreshold
+            && item.Name.StartsWith(PcPartCriteria.NamePrefix);
+        Grid.Sort = items => items.OrderByDescending(item => item.ModifiedOn).ThenBy(item => item.Id);
+    }
+
+    public GridViewModel Grid { get; }
+
+    public string ConditionsDescription =>
+        "Filter: Quantity > 10 and Name starts with \"pc part\". Sort: Modified on (newest first), then Id.";
 }
