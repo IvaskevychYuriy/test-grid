@@ -5,6 +5,10 @@
              x:DataType="vm:GridViewModel">
   <DataGrid x:Name="ItemsGrid"
             ItemsSource="{Binding Items}"
+            Height="{Binding ViewportHeight}"
+            VerticalAlignment="Top"
+            RowHeight="{x:Static vm:GridViewModel.RowHeight}"
+            ColumnHeaderHeight="{x:Static vm:GridViewModel.HeaderHeight}"
             AutoGenerateColumns="False"
             IsReadOnly="True"
             CanUserSortColumns="False">

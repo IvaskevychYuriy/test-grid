@@ -17,7 +17,13 @@ public partial class GridViewModel(IDbContextFactory<AppDbContext> contextFactor
 
     public IItemSort Sort { get; set; } = new ModifiedOnDescendingIdAscendingSort();
 
+    public const double RowHeight = 28;
+
+    public const double HeaderHeight = 28;
+
     public int PageSize { get; set; } = 20;
+
+    public double ViewportHeight => HeaderHeight + (PageSize * RowHeight);
 
     public bool HasMoreBefore { get; private set; }
 
