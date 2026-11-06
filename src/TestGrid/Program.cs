@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TestGrid.Changes;
 using TestGrid.Data;
 using TestGrid.ViewModels;
 
@@ -20,7 +21,10 @@ internal static class Program
         using var host = builder.Build();
         InitializeDatabaseAsync(host.Services).GetAwaiter().GetResult();
 
+        host.Start();
+
         BuildAvaloniaApp(host.Services).StartWithClassicDesktopLifetime(args);
+        host.StopAsync().GetAwaiter().GetResult();
     }
 
     public static void ConfigureServices(IServiceCollection services, string databasePath)
@@ -30,6 +34,10 @@ internal static class Program
             .UseSqlite($"Data Source={databasePath}")
             .AddInterceptors(provider.GetRequiredService<ModifiedOnInterceptor>()));
         services.AddSingleton<DbSeeder>();
+        services.AddSingleton(new DataChangeOptions());
+        services.AddSingleton<IDataChangeNotifier, DataChangeNotifier>();
+        services.AddSingleton<DataChangeGenerator>();
+        services.AddHostedService<BackgroundDataChanger>();
         services.AddTransient<GridViewModel>();
         services.AddTransient<ItemsViewModel>();
     }

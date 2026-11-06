@@ -75,3 +75,4 @@ Run the app: the window shows the grid with 1000 rows, no `Id` column, and the l
 - `ItemsViewModel` receives `GridViewModel` through DI and exposes it as `Grid`; `ItemsView` binds it as the `GridView` data context. `GridView` triggers the load when it is shown.
 - The build prints an "Avalonia Accelerate Community requires telemetry" notice; it comes from the Avalonia package and is not configurable on the free tier.
 - Superseded in feature 2: the grid no longer loads all rows; it loads pages by cursor. Column bindings are `OneWay`.
+- Feature 3 starts the host (`host.Start()`) after migration and seeding, so hosted services run.

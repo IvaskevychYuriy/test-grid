@@ -32,3 +32,4 @@ Requires `dotnet tool install -g dotnet-ef`.
 - Initial: Items page with a grid of all items - [design](design/initial.md).
 - Filter and sort: hardcoded filter (Quantity > 10, Name starts with "pc part") and sort (ModifiedOn desc, Id asc) applied in the DB query; shown above the grid - [design](design/feature-1-filter-sort.md). Delete the existing database to reseed with the 50% matching distribution.
 - Infinite scroll: the grid loads 20 rows at a time by cursor on (ModifiedOn desc, Id asc), trims rows far from the viewport and reloads them on scroll back - [design](design/feature-2-infinite-scroll.md).
+- Background changes: a hosted service inserts, updates and deletes 4 random rows each per second and raises `IDataChangeNotifier.DataChanged`; nothing subscribes yet. Tune in `DataChangeOptions` - [design](design/feature-3-background-changes.md).
