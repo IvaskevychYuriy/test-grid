@@ -37,7 +37,7 @@ Originally a `SaveChangesInterceptor` stamped `ModifiedOn` on every added or mod
 
 1. Build host (DI, logging).
 2. `Database.Migrate()` applies migrations.
-3. `DbSeeder.SeedIfEmpty` inserts 1000 generated rows when the table is empty.
+3. `DbSeeder.SeedIfEmpty` inserts 100 generated rows when the table is empty.
 4. Show `MainWindow`.
 
 Database file: `%LocalAppData%/TestGrid/items.db`.
@@ -60,13 +60,13 @@ Default Microsoft logger. The category `Microsoft.EntityFrameworkCore` is set to
 ## Testing
 
 - Seeded rows have a UTC `ModifiedOn`.
-- Seeder seeds an empty database with 1000 rows and does nothing on a non-empty one.
+- Seeder seeds an empty database with 100 rows and does nothing on a non-empty one.
 - `GridViewModel` loads all rows.
 - Tests use an in-memory SQLite connection.
 
 ## Smoke test
 
-Run the app: the window shows the grid with 1000 rows, no `Id` column, and the log has no SQL output.
+Run the app: the window shows the grid with 100 rows, no `Id` column, and the log has no SQL output.
 
 ## Implementation notes
 

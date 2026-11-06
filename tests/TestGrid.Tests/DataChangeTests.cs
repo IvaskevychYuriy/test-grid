@@ -20,9 +20,9 @@ public class DataChangeTests
         var inserts = events.Where(e => e.ChangeType == DataChangeType.Insert).ToList();
         var updates = events.Where(e => e.ChangeType == DataChangeType.Update).ToList();
         var deletes = events.Where(e => e.ChangeType == DataChangeType.Delete).ToList();
-        Assert.Equal(4, inserts.Count);
-        Assert.Equal(4, updates.Count);
-        Assert.Equal(4, deletes.Count);
+        Assert.Equal(2, inserts.Count);
+        Assert.Equal(2, updates.Count);
+        Assert.Equal(2, deletes.Count);
 
         var after = await ReadItemsAsync(factory);
         Assert.Equal(20, after.Count);
@@ -76,28 +76,28 @@ public class DataChangeTests
     {
         using var factory = new TestDbContextFactory();
         await TestData.AddItemsAsync(factory, 20);
-        var (generator, events) = CreateGenerator(factory, new DataChangeOptions { ChangesPerType = 2 });
+        var (generator, events) = CreateGenerator(factory, new DataChangeOptions { ChangesPerType = 3 });
 
         await generator.ApplyChangesAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(2, events.Count(e => e.ChangeType == DataChangeType.Insert));
-        Assert.Equal(2, events.Count(e => e.ChangeType == DataChangeType.Update));
-        Assert.Equal(2, events.Count(e => e.ChangeType == DataChangeType.Delete));
+        Assert.Equal(3, events.Count(e => e.ChangeType == DataChangeType.Insert));
+        Assert.Equal(3, events.Count(e => e.ChangeType == DataChangeType.Update));
+        Assert.Equal(3, events.Count(e => e.ChangeType == DataChangeType.Delete));
     }
 
     [Fact]
     public async Task HandlesFewerRowsThanRequestedChanges()
     {
         using var factory = new TestDbContextFactory();
-        await TestData.AddItemsAsync(factory, 3);
+        await TestData.AddItemsAsync(factory, 1);
         var (generator, events) = CreateGenerator(factory, new DataChangeOptions());
 
         await generator.ApplyChangesAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(4, events.Count(e => e.ChangeType == DataChangeType.Insert));
-        Assert.Equal(3, events.Count(e => e.ChangeType == DataChangeType.Update));
+        Assert.Equal(2, events.Count(e => e.ChangeType == DataChangeType.Insert));
+        Assert.Equal(1, events.Count(e => e.ChangeType == DataChangeType.Update));
         Assert.DoesNotContain(events, e => e.ChangeType == DataChangeType.Delete);
-        Assert.Equal(7, (await ReadItemsAsync(factory)).Count);
+        Assert.Equal(3, (await ReadItemsAsync(factory)).Count);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class DataChangeTests
         await generator.ApplyChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.All(events, e => Assert.Equal(DataChangeType.Insert, e.ChangeType));
-        Assert.Equal(4, events.Count);
+        Assert.Equal(2, events.Count);
     }
 
     [Fact]

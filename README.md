@@ -17,7 +17,7 @@ dotnet run --project src/TestGrid
 dotnet test   # xunit v3 on Microsoft.Testing.Platform, see global.json
 ```
 
-The database is created at `%LocalAppData%/TestGrid/items.db`. On start the app applies migrations and seeds 1000 rows if the table is empty. Delete the file to reseed.
+The database is created at `%LocalAppData%/TestGrid/items.db`. On start the app applies migrations and seeds 100 rows if the table is empty. Delete the file to reseed.
 
 ## Migrations
 
@@ -32,5 +32,5 @@ Requires `dotnet tool install -g dotnet-ef`.
 - Initial: Items page with a grid of all items - [design](design/initial.md).
 - Filter and sort: hardcoded filter (Quantity > 10, Name starts with "pc part") and sort (ModifiedOn desc, Id asc) applied in the DB query; shown above the grid - [design](design/feature-1-filter-sort.md). Delete the existing database to reseed with the 50% matching distribution.
 - Infinite scroll: the grid loads 20 rows at a time by cursor on (ModifiedOn desc, Id asc), trims rows far from the viewport and reloads them on scroll back - [design](design/feature-2-infinite-scroll.md).
-- Background changes: a hosted service inserts, updates and deletes 4 random rows each per second and raises `IDataChangeNotifier.DataChanged`; the grid subscribes through live updates (below). Tune in `DataChangeOptions` - [design](design/feature-3-background-changes.md).
+- Background changes: a hosted service inserts, updates and deletes 2 random rows each per second and raises `IDataChangeNotifier.DataChanged`; the grid subscribes through live updates (below). Tune in `DataChangeOptions` - [design](design/feature-3-background-changes.md).
 - Live updates: events are batched for 2 s, merged, and applied to the loaded rows (in place, move, insert, remove, refill) with PK lookups and cursor queries only; changed rows blink for 1 s and a 10-row log pane under the grid shows what happened - [design](design/feature-4-live-updates.md). The sort index migration is applied on start.

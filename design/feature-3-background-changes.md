@@ -12,7 +12,7 @@ Every second the service performs:
 - N updates of random existing items,
 - N deletes of random existing items.
 
-`N` is defined in one place: `DataChangeOptions.ChangesPerType` (default 4).
+`N` is defined in one place: `DataChangeOptions.ChangesPerType` (default 2).
 
 All writes go through `IDbContextFactory<AppDbContext>`. `ModifiedOn` is set explicitly by the worker (no interceptor): inserts always get `UtcNow`, and each update randomly either sets `ModifiedOn = UtcNow` or leaves it unchanged.
 
@@ -40,11 +40,11 @@ All writes go through `IDbContextFactory<AppDbContext>`. `ModifiedOn` is set exp
 
 ## Smoke test
 
-Run the app with `Logging__LogLevel__Default=Debug`; it logs one applied tick per second (12 row changes), no SQL is logged, and the UI does not break.
+Run the app with `Logging__LogLevel__Default=Debug`; it logs one applied tick per second (6 row changes), no SQL is logged, and the UI does not break.
 
 ## Implementation notes
 
-- Classes live in `src/TestGrid/Changes`: `DataChangeOptions` (`ChangesPerType = 4`, `Interval = 1 s`, the only place to change them), `DataChangeGenerator` (one tick), `BackgroundDataChanger` (hosted timer loop), `DataChangeNotifier` / `IDataChangeNotifier` (event), `DataChangedEventArgs`, `ItemPatch`, `DataChangeType`.
+- Classes live in `src/TestGrid/Changes`: `DataChangeOptions` (`ChangesPerType = 2`, `Interval = 1 s`, the only place to change them), `DataChangeGenerator` (one tick), `BackgroundDataChanger` (hosted timer loop), `DataChangeNotifier` / `IDataChangeNotifier` (event), `DataChangedEventArgs`, `ItemPatch`, `DataChangeType`.
 - `ItemPatch` has nullable `Name`, `Quantity`, `Price` and `ModifiedOn`. Insert patches carry all four. Update patches carry only the fields that were changed (at least one of name, quantity, price; each random) plus `ModifiedOn` only when the update changed it (null otherwise). Delete events have no patch.
 - One tick reads `2 x ChangesPerType` random rows (`EF.Functions.Random()`): the first half is updated, the second half is deleted, so no row is updated and deleted in the same tick. Inserts reuse `DbSeeder.GenerateItems`, so about half of them match the feature 1 filter. With fewer rows than requested the counts shrink (an empty table only gets inserts).
 - All changes of a tick go in one `SaveChanges`. Events are published after it succeeds, one per row, on the background thread. A future subscriber that touches UI must marshal to the UI thread.
