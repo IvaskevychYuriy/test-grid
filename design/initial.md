@@ -31,7 +31,7 @@ SQLite storage decisions:
 
 ## ModifiedOn maintenance
 
-`ModifiedOnInterceptor : SaveChangesInterceptor` sets `ModifiedOn = DateTimeOffset.UtcNow` for every `Added` and `Modified` `Item` entry, in both sync and async `SavingChanges` overloads. It is registered through DI and added to the `DbContext` options.
+Originally a `SaveChangesInterceptor` stamped `ModifiedOn` on every added or modified item. That was removed (see "Explicit ModifiedOn" below): every writer now sets `ModifiedOn` itself, in UTC.
 
 ## Startup
 
@@ -59,7 +59,7 @@ Default Microsoft logger. The category `Microsoft.EntityFrameworkCore` is set to
 
 ## Testing
 
-- Interceptor sets `ModifiedOn` on create and update, in UTC.
+- Seeded rows have a UTC `ModifiedOn`.
 - Seeder seeds an empty database with 1000 rows and does nothing on a non-empty one.
 - `GridViewModel` loads all rows.
 - Tests use an in-memory SQLite connection.
@@ -76,3 +76,4 @@ Run the app: the window shows the grid with 1000 rows, no `Id` column, and the l
 - The build prints an "Avalonia Accelerate Community requires telemetry" notice; it comes from the Avalonia package and is not configurable on the free tier.
 - Superseded in feature 2: the grid no longer loads all rows; it loads pages by cursor. Column bindings are `OneWay`.
 - Feature 3 starts the host (`host.Start()`) after migration and seeding, so hosted services run.
+- Explicit ModifiedOn (refactor after feature 3): the interceptor was removed because the background worker must decide per update whether the sort key changes. The seeder sets `ModifiedOn` to a random UTC time within the last 30 days so the seed is not one big tie. The worker sets `UtcNow` on inserts and, for a random half of its updates, on updates. Nothing else stamps `ModifiedOn`: any new writer must set it.

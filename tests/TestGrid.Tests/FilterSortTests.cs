@@ -53,9 +53,9 @@ public class FilterSortTests
         await using (var context = factory.CreateDbContext())
         {
             context.Items.AddRange(
-                new Item { Id = HighId, Name = "pc part c", Quantity = 20 },
-                new Item { Id = LowId, Name = "pc part a", Quantity = 20 },
-                new Item { Id = MiddleId, Name = "pc part b", Quantity = 20 });
+                new Item { Id = HighId, Name = "pc part c", Quantity = 20, ModifiedOn = TestData.BaseModifiedOn },
+                new Item { Id = LowId, Name = "pc part a", Quantity = 20, ModifiedOn = TestData.BaseModifiedOn },
+                new Item { Id = MiddleId, Name = "pc part b", Quantity = 20, ModifiedOn = TestData.BaseModifiedOn });
             await context.SaveChangesAsync();
         }
 
@@ -63,11 +63,11 @@ public class FilterSortTests
         await page.Grid.LoadAsync();
         Assert.Equal([LowId, MiddleId, HighId], page.Grid.Items.Select(item => item.Id));
 
-        await Task.Delay(20);
         await using (var context = factory.CreateDbContext())
         {
             var item = await context.Items.SingleAsync(i => i.Id == HighId);
             item.Quantity = 30;
+            item.ModifiedOn = TestData.BaseModifiedOn.AddSeconds(1);
             await context.SaveChangesAsync();
         }
 

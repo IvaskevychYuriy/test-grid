@@ -7,6 +7,8 @@ public class DbSeeder(IDbContextFactory<AppDbContext> contextFactory)
 {
     public const int SeedRowCount = 1000;
 
+    private const int SeedHistoryDays = 30;
+
     public async Task SeedIfEmptyAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -19,7 +21,7 @@ public class DbSeeder(IDbContextFactory<AppDbContext> contextFactory)
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public static List<Item> GenerateItems(int count)
+    public static List<Item> GenerateItems(int count, DateTimeOffset? modifiedOn = null)
     {
         var faker = new Faker();
         var items = new List<Item>(count);
@@ -30,6 +32,11 @@ public class DbSeeder(IDbContextFactory<AppDbContext> contextFactory)
             items.Add(index < matchingCount
                 ? CreateMatchingItem(faker)
                 : CreateNonMatchingItem(faker, index));
+        }
+
+        foreach (var item in items)
+        {
+            item.ModifiedOn = modifiedOn ?? faker.Date.RecentOffset(SeedHistoryDays).ToUniversalTime();
         }
 
         return [.. faker.Random.Shuffle(items)];

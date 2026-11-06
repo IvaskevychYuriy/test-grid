@@ -5,6 +5,8 @@ namespace TestGrid.Tests;
 
 public static class TestData
 {
+    public static readonly DateTimeOffset BaseModifiedOn = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+
     public static async Task AddItemsAsync(
         TestDbContextFactory factory,
         int count,
@@ -13,7 +15,7 @@ public static class TestData
         if (identicalModifiedOn)
         {
             await using var context = factory.CreateDbContext();
-            context.Items.AddRange(Enumerable.Range(0, count).Select(CreateItem));
+            context.Items.AddRange(Enumerable.Range(0, count).Select(index => CreateItem(index, identicalModifiedOn: true)));
             await context.SaveChangesAsync();
             return;
         }
@@ -21,9 +23,8 @@ public static class TestData
         for (var index = 0; index < count; index++)
         {
             await using var context = factory.CreateDbContext();
-            context.Items.Add(CreateItem(index));
+            context.Items.Add(CreateItem(index, identicalModifiedOn: false));
             await context.SaveChangesAsync();
-            await Task.Delay(2);
         }
     }
 
@@ -36,5 +37,10 @@ public static class TestData
             .ToListAsync();
     }
 
-    private static Item CreateItem(int index) => new() { Name = $"item {index}", Quantity = index };
+    private static Item CreateItem(int index, bool identicalModifiedOn) => new()
+    {
+        Name = $"item {index}",
+        Quantity = index,
+        ModifiedOn = identicalModifiedOn ? BaseModifiedOn : BaseModifiedOn.AddMilliseconds(index),
+    };
 }

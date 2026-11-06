@@ -12,6 +12,7 @@ public class DataChangeTests
         using var factory = new TestDbContextFactory();
         await TestData.AddItemsAsync(factory, 20);
         var before = await ReadItemsAsync(factory);
+        var tickStart = DateTimeOffset.UtcNow;
         var (generator, events) = CreateGenerator(factory, new DataChangeOptions());
 
         await generator.ApplyChangesAsync(TestContext.Current.CancellationToken);
@@ -36,18 +37,38 @@ public class DataChangeTests
             Assert.False(before.ContainsKey(e.ItemId));
             var item = after[e.ItemId];
             Assert.Equal(new ItemPatch(item.Name, item.Quantity, item.Price, item.ModifiedOn), e.Patch);
+            Assert.True(item.ModifiedOn >= tickStart);
+            Assert.Equal(TimeSpan.Zero, item.ModifiedOn.Offset);
         });
         Assert.All(updates, e =>
         {
             var item = after[e.ItemId];
             var patch = e.Patch!;
-            Assert.Equal(item.ModifiedOn, patch.ModifiedOn);
-            Assert.True(item.ModifiedOn > before[e.ItemId].ModifiedOn);
+            Assert.Equal(patch.ModifiedOn ?? before[e.ItemId].ModifiedOn, item.ModifiedOn);
             Assert.Equal(patch.Name ?? before[e.ItemId].Name, item.Name);
             Assert.Equal(patch.Quantity ?? before[e.ItemId].Quantity, item.Quantity);
             Assert.Equal(patch.Price ?? before[e.ItemId].Price, item.Price);
             Assert.True(patch.Name is not null || patch.Quantity is not null || patch.Price is not null);
         });
+    }
+
+    [Fact]
+    public async Task UpdatesRandomlyStampOrKeepModifiedOn()
+    {
+        using var factory = new TestDbContextFactory();
+        await TestData.AddItemsAsync(factory, 50);
+        var (generator, events) = CreateGenerator(factory, new DataChangeOptions());
+
+        for (var tick = 0; tick < 10; tick++)
+        {
+            await generator.ApplyChangesAsync(TestContext.Current.CancellationToken);
+        }
+
+        var updates = events.Where(e => e.ChangeType == DataChangeType.Update).ToList();
+        Assert.Contains(updates, e => e.Patch!.ModifiedOn is not null);
+        Assert.Contains(updates, e => e.Patch!.ModifiedOn is null);
+        Assert.All(updates, e => Assert.True(
+            e.Patch!.Name is not null || e.Patch.Quantity is not null || e.Patch.Price is not null));
     }
 
     [Fact]

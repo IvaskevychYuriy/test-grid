@@ -7,7 +7,6 @@ namespace TestGrid.Tests;
 public sealed class TestDbContextFactory : IDbContextFactory<AppDbContext>, IDisposable
 {
     private readonly SqliteConnection connection = new("Data Source=:memory:");
-    private readonly ModifiedOnInterceptor interceptor = new();
 
     public TestDbContextFactory()
     {
@@ -20,7 +19,6 @@ public sealed class TestDbContextFactory : IDbContextFactory<AppDbContext>, IDis
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(connection)
-            .AddInterceptors(interceptor)
             .Options;
         return new AppDbContext(options);
     }

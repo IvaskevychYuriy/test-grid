@@ -22,7 +22,7 @@ public class DataChangeGenerator(
             .ToListAsync(cancellationToken);
         var toDelete = existing.Skip(count).ToList();
         var updates = existing.Take(count).Select(item => (Item: item, Patch: ChangeRandomFields(item))).ToList();
-        var toInsert = DbSeeder.GenerateItems(count);
+        var toInsert = DbSeeder.GenerateItems(count, modifiedOn: DateTimeOffset.UtcNow);
 
         context.Items.RemoveRange(toDelete);
         context.Items.AddRange(toInsert);
@@ -35,7 +35,7 @@ public class DataChangeGenerator(
 
         foreach (var (item, patch) in updates)
         {
-            Publish(DataChangeType.Update, item.Id, patch with { ModifiedOn = item.ModifiedOn });
+            Publish(DataChangeType.Update, item.Id, patch);
         }
 
         foreach (var item in toDelete)
@@ -52,7 +52,8 @@ public class DataChangeGenerator(
         var patch = new ItemPatch(
             Name: faker.Random.Bool(0.3f) ? faker.Commerce.ProductName() : null,
             Quantity: faker.Random.Bool() ? faker.Random.Int(0, 500) : null,
-            Price: faker.Random.Bool() ? faker.Random.Float(1, 2000) : null);
+            Price: faker.Random.Bool() ? faker.Random.Float(1, 2000) : null,
+            ModifiedOn: faker.Random.Bool() ? DateTimeOffset.UtcNow : null);
 
         if (patch is { Name: null, Quantity: null, Price: null })
         {
@@ -62,6 +63,7 @@ public class DataChangeGenerator(
         item.Name = patch.Name ?? item.Name;
         item.Quantity = patch.Quantity ?? item.Quantity;
         item.Price = patch.Price ?? item.Price;
+        item.ModifiedOn = patch.ModifiedOn ?? item.ModifiedOn;
         return patch;
     }
 }

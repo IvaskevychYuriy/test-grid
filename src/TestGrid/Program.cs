@@ -29,10 +29,7 @@ internal static class Program
 
     public static void ConfigureServices(IServiceCollection services, string databasePath)
     {
-        services.AddSingleton<ModifiedOnInterceptor>();
-        services.AddDbContextFactory<AppDbContext>((provider, options) => options
-            .UseSqlite($"Data Source={databasePath}")
-            .AddInterceptors(provider.GetRequiredService<ModifiedOnInterceptor>()));
+        services.AddDbContextFactory<AppDbContext>(options => options.UseSqlite($"Data Source={databasePath}"));
         services.AddSingleton<DbSeeder>();
         services.AddSingleton(new DataChangeOptions());
         services.AddSingleton<IDataChangeNotifier, DataChangeNotifier>();
