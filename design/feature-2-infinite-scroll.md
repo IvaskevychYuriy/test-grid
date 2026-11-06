@@ -33,3 +33,16 @@ Scroll position is detected from the `ScrollViewer` inside the `DataGrid`. Loadi
 ## Smoke test
 
 Scroll down through the whole dataset and back up. No jumps, no duplicates, loading stops at both ends.
+
+## Implementation notes
+
+- `IItemSort` replaces the delegate sort from feature 1. It provides `Order`, `OrderReversed`, `After(cursor)` and `Before(cursor)`; `ModifiedOnDescendingIdAscendingSort` is the only implementation. `GridViewModel.Filter` is unchanged.
+- `ItemCursor` is `(ModifiedOn, Id)` taken from the first or last loaded row. `Guid.CompareTo` translates to SQL on SQLite, and TEXT ordering of `Id` matches `ORDER BY`.
+- Each load fetches `PageSize + 1` rows. The extra row only tells whether more data exists (`HasMoreBefore` / `HasMoreAfter`), so the end is detected exactly, including when the row count is a multiple of the page size.
+- The view tracks realized `DataGridRow`s (`LoadingRow` / `UnloadingRow`), derives the first and last visible item index, and calls `GridViewModel.OnViewportChangedAsync`. All load and trim decisions live in the view model and are unit tested.
+- Next page loads when fewer than `PageSize / 4` rows remain below the viewport; previous page the same way above it.
+- The loaded window targets `2 x PageSize`. Rows are trimmed from the far side, but never closer than `PageSize / 4` rows to the viewport. The cap is therefore soft: a viewport taller than about 15 rows keeps a few more rows loaded. This also prevents load/trim oscillation.
+- The viewport itself shows as many rows as fit the control; `PageSize` is the load chunk, not the visible row count.
+- Scroll position needs no compensation: a headless spike showed `DataGrid` keeps the same rows in view when rows are inserted above, or removed above or below.
+- Bug found while testing: column bindings were two-way by default, and the grid wrote the formatted `ModifiedOn` text (seconds precision, parsed as local time) back into the view model, corrupting the cursor. All column bindings are now `Mode=OneWay`.
+- Tests: view model tests for paging, ties, window bounds and end detection; a headless `GridView` test that scrolls to both ends. The test project moved to xunit v3 (required by `Avalonia.Headless.XUnit`) with the Microsoft.Testing.Platform runner, enabled in `global.json`.

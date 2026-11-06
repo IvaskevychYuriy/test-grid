@@ -53,7 +53,7 @@ Default Microsoft logger. The category `Microsoft.EntityFrameworkCore` is set to
 - `GridView` / `GridViewModel`: custom reusable component.
   - Uses an `ObservableCollection<ItemViewModel>`.
   - `ItemViewModel` is an `ObservableObject`, so every item is observable.
-  - `GridViewModel` loads all rows from the database itself (through `IDbContextFactory<AppDbContext>`). The page view model does not touch the database.
+  - `GridViewModel` loads rows from the database itself (all rows in the initial feature; paged since feature 2) (through `IDbContextFactory<AppDbContext>`). The page view model does not touch the database.
   - Built on `Avalonia.Controls.DataGrid` with explicit columns. The `Id` column is not shown.
 - View models are created through DI.
 
@@ -74,3 +74,4 @@ Run the app: the window shows the grid with 1000 rows, no `Id` column, and the l
 - `DesignTimeDbContextFactory` lets `dotnet ef` create migrations without starting the Avalonia app.
 - `ItemsViewModel` receives `GridViewModel` through DI and exposes it as `Grid`; `ItemsView` binds it as the `GridView` data context. `GridView` triggers the load when it is shown.
 - The build prints an "Avalonia Accelerate Community requires telemetry" notice; it comes from the Avalonia package and is not configurable on the free tier.
+- Superseded in feature 2: the grid no longer loads all rows; it loads pages by cursor. Column bindings are `OneWay`.

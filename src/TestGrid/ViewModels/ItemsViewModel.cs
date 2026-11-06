@@ -10,8 +10,11 @@ public class ItemsViewModel : ObservableObject
         Grid = grid;
         Grid.Filter = item => item.Quantity > PcPartCriteria.QuantityThreshold
             && item.Name.StartsWith(PcPartCriteria.NamePrefix);
-        Grid.Sort = items => items.OrderByDescending(item => item.ModifiedOn).ThenBy(item => item.Id);
+        Grid.Sort = new ModifiedOnDescendingIdAscendingSort();
+        Grid.PageSize = PageSize;
     }
+
+    public int PageSize { get; } = 20;
 
     public GridViewModel Grid { get; }
 

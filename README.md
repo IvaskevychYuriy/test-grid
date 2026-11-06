@@ -14,7 +14,7 @@ Design documents live in [`design/`](design/). Working rules are in [`CLAUDE.md`
 ```
 dotnet build
 dotnet run --project src/TestGrid
-dotnet test
+dotnet test   # xunit v3 on Microsoft.Testing.Platform, see global.json
 ```
 
 The database is created at `%LocalAppData%/TestGrid/items.db`. On start the app applies migrations and seeds 1000 rows if the table is empty. Delete the file to reseed.
@@ -31,3 +31,4 @@ Requires `dotnet tool install -g dotnet-ef`.
 
 - Initial: Items page with a grid of all items - [design](design/initial.md).
 - Filter and sort: hardcoded filter (Quantity > 10, Name starts with "pc part") and sort (ModifiedOn desc, Id asc) applied in the DB query; shown above the grid - [design](design/feature-1-filter-sort.md). Delete the existing database to reseed with the 50% matching distribution.
+- Infinite scroll: the grid loads 20 rows at a time by cursor on (ModifiedOn desc, Id asc), trims rows far from the viewport and reloads them on scroll back - [design](design/feature-2-infinite-scroll.md).

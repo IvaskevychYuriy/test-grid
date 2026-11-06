@@ -9,34 +9,118 @@ namespace TestGrid.ViewModels;
 
 public partial class GridViewModel(IDbContextFactory<AppDbContext> contextFactory) : ObservableObject
 {
+    private bool isLoading;
+
     public ObservableCollection<ItemViewModel> Items { get; } = [];
 
     public Expression<Func<Item, bool>>? Filter { get; set; }
 
-    public Func<IQueryable<Item>, IOrderedQueryable<Item>>? Sort { get; set; }
+    public IItemSort Sort { get; set; } = new ModifiedOnDescendingIdAscendingSort();
+
+    public int PageSize { get; set; } = 20;
+
+    public bool HasMoreBefore { get; private set; }
+
+    public bool HasMoreAfter { get; private set; }
+
+    public int MaxLoadedRows => PageSize * 2;
+
+    private int EdgeDistance => Math.Max(1, PageSize / 4);
 
     [RelayCommand]
     public async Task LoadAsync()
     {
         await using var context = await contextFactory.CreateDbContextAsync();
-        IQueryable<Item> query = context.Items.AsNoTracking();
-
-        if (Filter is not null)
-        {
-            query = query.Where(Filter);
-        }
-
-        if (Sort is not null)
-        {
-            query = Sort(query);
-        }
-
-        var items = await query.ToListAsync();
+        var rows = await Sort.Order(FilteredItems(context)).AsNoTracking()
+            .Take(PageSize + 1).ToListAsync();
 
         Items.Clear();
-        foreach (var item in items)
+        AppendRows(rows.Take(PageSize));
+        HasMoreBefore = false;
+        HasMoreAfter = rows.Count > PageSize;
+    }
+
+    public async Task OnViewportChangedAsync(int firstVisibleIndex, int lastVisibleIndex)
+    {
+        if (isLoading || Items.Count == 0)
         {
-            Items.Add(new ItemViewModel(item));
+            return;
+        }
+
+        isLoading = true;
+        try
+        {
+            if (HasMoreAfter && lastVisibleIndex >= Items.Count - EdgeDistance)
+            {
+                await LoadNextAsync(firstVisibleIndex);
+            }
+            else if (HasMoreBefore && firstVisibleIndex < EdgeDistance)
+            {
+                await LoadPreviousAsync(lastVisibleIndex);
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadNextAsync(int firstVisibleIndex)
+    {
+        var last = Items[^1];
+        var cursor = new ItemCursor(last.ModifiedOn, last.Id);
+
+        await using var context = await contextFactory.CreateDbContextAsync();
+        var rows = await Sort.Order(Sort.After(FilteredItems(context), cursor)).AsNoTracking()
+            .Take(PageSize + 1).ToListAsync();
+
+        AppendRows(rows.Take(PageSize));
+        HasMoreAfter = rows.Count > PageSize;
+
+        var removable = Math.Max(0, firstVisibleIndex - EdgeDistance);
+        var removeCount = Math.Min(Items.Count - MaxLoadedRows, removable);
+        for (var removed = 0; removed < removeCount; removed++)
+        {
+            Items.RemoveAt(0);
+            HasMoreBefore = true;
+        }
+    }
+
+    private async Task LoadPreviousAsync(int lastVisibleIndex)
+    {
+        var first = Items[0];
+        var cursor = new ItemCursor(first.ModifiedOn, first.Id);
+
+        await using var context = await contextFactory.CreateDbContextAsync();
+        var rows = await Sort.OrderReversed(Sort.Before(FilteredItems(context), cursor)).AsNoTracking()
+            .Take(PageSize + 1).ToListAsync();
+
+        var pageRows = rows.Take(PageSize).ToList();
+        foreach (var row in pageRows)
+        {
+            Items.Insert(0, new ItemViewModel(row));
+        }
+
+        HasMoreBefore = rows.Count > PageSize;
+
+        var lastVisibleAfterInsert = lastVisibleIndex + pageRows.Count;
+        var removable = Math.Max(0, Items.Count - 1 - lastVisibleAfterInsert - EdgeDistance);
+        var removeCount = Math.Min(Items.Count - MaxLoadedRows, removable);
+        for (var removed = 0; removed < removeCount; removed++)
+        {
+            Items.RemoveAt(Items.Count - 1);
+            HasMoreAfter = true;
+        }
+    }
+
+    private IQueryable<Item> FilteredItems(AppDbContext context) =>
+        Filter is null ? context.Items : context.Items.Where(Filter);
+
+    private void AppendRows(IEnumerable<Item> rows)
+    {
+        foreach (var row in rows)
+        {
+            Items.Add(new ItemViewModel(row));
         }
     }
 }
