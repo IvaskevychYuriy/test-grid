@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -9,6 +10,7 @@ public partial class GridView : UserControl
 {
     private readonly HashSet<DataGridRow> realizedRows = [];
     private bool viewportCheckQueued;
+    private GridViewModel? subscribedViewModel;
 
     public GridView()
     {
@@ -22,9 +24,23 @@ public partial class GridView : UserControl
         base.OnLoaded(e);
         if (DataContext is GridViewModel viewModel)
         {
+            subscribedViewModel = viewModel;
+            viewModel.Items.CollectionChanged += OnItemsChanged;
             viewModel.LoadCommand.Execute(null);
         }
     }
+
+    protected override void OnUnloaded(RoutedEventArgs e)
+    {
+        base.OnUnloaded(e);
+        if (subscribedViewModel is not null)
+        {
+            subscribedViewModel.Items.CollectionChanged -= OnItemsChanged;
+            subscribedViewModel = null;
+        }
+    }
+
+    private void OnItemsChanged(object? sender, NotifyCollectionChangedEventArgs e) => QueueViewportCheck();
 
     private void OnRowRealizationChanged(DataGridRow row, bool isRealized)
     {
@@ -37,6 +53,11 @@ public partial class GridView : UserControl
             realizedRows.Remove(row);
         }
 
+        QueueViewportCheck();
+    }
+
+    private void QueueViewportCheck()
+    {
         if (!viewportCheckQueued)
         {
             viewportCheckQueued = true;

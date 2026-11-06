@@ -53,3 +53,4 @@ Run the app with `Logging__LogLevel__Default=Debug`; it logs one applied tick pe
 - Smoke result: with debug logging the app logged one tick per second, no EF commands were logged, and the UI stayed responsive.
 - Known interaction: the grid does not react to the changes yet. Updates move rows to the top of the sort order, so while scrolling, the cursor can load rows in a different place than a fresh query would, and deleted rows stay visible until reloaded. Cursors are values, not row references, so paging itself never fails. A later feature binds the event to the grid.
 - Updates that keep `ModifiedOn` do not move in the sort order; updates that set it jump to the top. Both cases are intended, so consumers handle in-place patches and moves.
+- Update: the grid now reacts to these events, see [feature 4](feature-4-live-updates.md). The "known interaction" above no longer applies.

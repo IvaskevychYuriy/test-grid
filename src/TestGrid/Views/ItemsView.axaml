@@ -10,6 +10,25 @@
                FontWeight="Bold"
                TextWrapping="Wrap"
                Text="{Binding ConditionsDescription}" />
+    <Border DockPanel.Dock="Bottom"
+            Height="182"
+            Margin="0,8,0,0"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Grid.ChangeLog}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Height="18"
+                         Margin="6,0"
+                         FontFamily="Cascadia Mono, Consolas, monospace"
+                         FontSize="12"
+                         Text="{Binding}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
     <views:GridView DataContext="{Binding Grid}" />
   </DockPanel>
 </UserControl>

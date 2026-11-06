@@ -37,6 +37,9 @@ namespace TestGrid.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ModifiedOn", "Id")
+                        .IsDescending(true, false);
+
                     b.ToTable("Items");
                 });
 #pragma warning restore 612, 618

@@ -5,9 +5,9 @@
         x:Class="TestGrid.Views.MainWindow"
         x:DataType="vm:ItemsViewModel"
         Title="Test Grid"
-        Width="800"
-        Height="660"
-        MinWidth="640"
-        MinHeight="660">
+        Width="900"
+        Height="880"
+        MinWidth="720"
+        MinHeight="880">
   <views:ItemsView />
 </Window>

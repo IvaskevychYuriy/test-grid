@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             item.HasKey(i => i.Id);
             item.Property(i => i.Id).ValueGeneratedNever();
             item.Property(i => i.Name).IsRequired();
+            item.HasIndex(i => new { i.ModifiedOn, i.Id }).IsDescending(true, false);
             item.Property(i => i.ModifiedOn).HasConversion(
                 value => value.UtcTicks,
                 ticks => new DateTimeOffset(ticks, TimeSpan.Zero));

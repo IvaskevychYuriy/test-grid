@@ -33,6 +33,9 @@ internal static class Program
         services.AddSingleton<DbSeeder>();
         services.AddSingleton(new DataChangeOptions());
         services.AddSingleton<IDataChangeNotifier, DataChangeNotifier>();
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<ChangeBatcher>();
+        services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
         services.AddSingleton<DataChangeGenerator>();
         services.AddHostedService<BackgroundDataChanger>();
         services.AddTransient<GridViewModel>();

@@ -12,6 +12,19 @@
             AutoGenerateColumns="False"
             IsReadOnly="True"
             CanUserSortColumns="False">
+    <DataGrid.Styles>
+      <Style Selector="DataGridRow" x:DataType="vm:ItemViewModel">
+        <Setter Property="Classes.highlighted" Value="{Binding IsHighlighted}" />
+        <Setter Property="Transitions">
+          <Transitions>
+            <BrushTransition Property="Background" Duration="0:0:0.3" />
+          </Transitions>
+        </Setter>
+      </Style>
+      <Style Selector="DataGridRow.highlighted">
+        <Setter Property="Background" Value="#664CAF50" />
+      </Style>
+    </DataGrid.Styles>
     <DataGrid.Columns>
       <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name, Mode=OneWay, x:DataType=vm:ItemViewModel}" />
       <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity, Mode=OneWay, x:DataType=vm:ItemViewModel}" />
