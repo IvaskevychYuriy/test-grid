@@ -133,7 +133,8 @@ public class GridViewModelTests
     [Fact]
     public void ItemViewModelRaisesPropertyChanged()
     {
-        var item = new ItemViewModel(new Item { Name = "a" });
+        var source = new Item { Name = "a" };
+        var item = new ItemViewModel(source, new ItemCursor(source.ModifiedOn, source.Id));
         var changed = new List<string?>();
         item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 

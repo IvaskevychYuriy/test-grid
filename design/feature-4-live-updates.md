@@ -34,12 +34,12 @@ Runs on the UI thread under the same single-flight gate as scroll loading, so th
 
 | Loaded | In range now | Action |
 | --- | --- | --- |
-| yes | yes | patch the row in place; if `ModifiedOn` changed, move it to its new position |
+| yes | yes | patch the row in place; if its sort cursor changed, move it to its new position |
 | yes | no | remove from `Items` |
 | no | yes | insert at its position |
 | no | no | nothing (counted as ignored) |
 
-4. The position of an insert or move is found in memory with `IItemSort.Compare`. It must equal the SQL order, so `Id` is compared as the uppercase text EF stores (`Guid.CompareTo` orders differently). A test compares both orders.
+4. The cursor of a row comes from `IItemSort.CursorOf(Item)` and is stored on `ItemViewModel.Cursor`. A sort key change is detected as `Sort.Compare(oldCursor, newCursor) != 0`, so the grid never assumes which column the sort uses. The position of an insert or move is found in memory with `IItemSort.Compare`. It must equal the SQL order, so `Id` is compared as the uppercase text EF stores (`Guid.CompareTo` orders differently). A test compares both orders.
 5. Trim: if the window exceeds `MaxLoadedRows`, rows are removed from the side farther from the viewport, never closer than `EdgeDistance` to it.
 6. Refill: if rows were removed, the window is refilled to its previous size with one cursor query after `hi` (then one before `lo` when the tail was reached). An empty window is reloaded from the head.
 
@@ -74,10 +74,11 @@ At the top the rows change every 2 s with a blink and log lines. After scrolling
 
 ## Implementation notes
 
-- New types: `ChangeBatcher`, `ChangeBatch` (in `Changes/`), `IUiDispatcher` with `AvaloniaUiDispatcher` and `ImmediateUiDispatcher` (tests), new `IItemSort` members `NotBefore`, `NotAfter`, `Compare`.
+- New types: `ChangeBatcher`, `ChangeBatch` (in `Changes/`), `IUiDispatcher` with `AvaloniaUiDispatcher` and `ImmediateUiDispatcher` (tests), new `IItemSort` members `NotBefore`, `NotAfter`, `Compare`, `CursorOf`.
 - `GridViewModel` takes `TimeProvider` and `IUiDispatcher` as optional constructor parameters, so existing tests and plain construction still work; DI supplies both.
 - `ItemsViewModel` subscribes to `ChangeBatcher.BatchReady` and forwards each batch through the dispatcher to `GridViewModel.ApplyChangesAsync`. The subscription is never removed because the page lives as long as the app.
 - Viewport indices are stored in the view model and kept in step with every row insert or removal, so reconcile decisions (trim, mode) do not depend on a layout pass. `GridView` also queues a viewport check on every `Items` change so the indices are re-synchronized with what is really realized.
+- `ItemCursor` still has one fixed key slot, `(DateTimeOffset ModifiedOn, Guid Id)`. A sort on another column needs `ItemCursor` generalized first; the grid itself needs no change. The test sort `QuantityDescendingIdAscendingSort` stores `Quantity` in that slot to prove a non-`ModifiedOn` key change moves the row (see [review 1](review-1.md)).
 - The loaded-row dictionary (`loadedById`) is maintained only through the row helpers (`AppendRow`, `InsertRow`, `RemoveRowAt`, `ClearRows`); never mutate `Items` directly.
 - The window assertion used by the tests ("the window equals the same range of a fresh query, without duplicates, with correct end flags") is the main correctness check; three seeded random batch sequences run it after every batch. Mutation checks (inverted comparer, dropped upper bound) make these tests fail, so they do detect errors.
 - Event timing: the worker ticks every second and the batch window is 2 s, so a batch carries two to three ticks (12 to 18 events).

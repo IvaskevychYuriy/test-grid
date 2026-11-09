@@ -114,6 +114,24 @@ public class GridReconcileTests
     }
 
     [Fact]
+    public async Task UpdateChangingANonModifiedOnSortKeyMovesTheRow()
+    {
+        using var fixture = new LiveFixture();
+        await fixture.SeedAsync(100);
+        fixture.Grid.Sort = new QuantityDescendingIdAscendingSort();
+        await fixture.Grid.LoadAsync();
+        var id = fixture.Grid.Items[5].Id;
+        await fixture.UpdateAsync(id, item => item.Quantity = 500);
+
+        await fixture.ApplyAsync(updated: [id]);
+
+        Assert.Equal(id, fixture.Grid.Items[0].Id);
+        Assert.Equal(500, fixture.Grid.Items[0].Quantity);
+        Assert.Equal(20, fixture.Grid.Items.Count);
+        Assert.Contains(fixture.Grid.ChangeLog, line => line.Contains("moved to row 0"));
+    }
+
+    [Fact]
     public async Task UpdateMovingToTheTopInLiveModeMovesTheRow()
     {
         using var fixture = new LiveFixture();

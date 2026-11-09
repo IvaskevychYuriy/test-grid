@@ -24,6 +24,8 @@ public class ModifiedOnDescendingIdAscendingSort : IItemSort
         items.Where(item => item.ModifiedOn > cursor.ModifiedOn
             || (item.ModifiedOn == cursor.ModifiedOn && item.Id.CompareTo(cursor.Id) <= 0));
 
+    public ItemCursor CursorOf(Item item) => new(item.ModifiedOn, item.Id);
+
     // EF stores Guid as upper-case text, so SQL orders ids by that text, not by Guid.CompareTo.
     public int Compare(ItemCursor first, ItemCursor second)
     {

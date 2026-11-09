@@ -171,7 +171,7 @@ public partial class GridViewModel(
         var pageRows = rows.Take(PageSize).ToList();
         foreach (var row in pageRows)
         {
-            InsertRow(0, new ItemViewModel(row));
+            InsertRow(0, CreateRow(row));
         }
 
         HasMoreBefore = rows.Count > PageSize;
@@ -224,7 +224,7 @@ public partial class GridViewModel(
             var item = fresh[index];
             if (index < Items.Count && Items[index].Id == item.Id)
             {
-                if (Items[index].ApplyFrom(item))
+                if (Items[index].ApplyFrom(item, Sort.CursorOf(item)))
                 {
                     changed.Add(Items[index]);
                 }
@@ -237,7 +237,7 @@ public partial class GridViewModel(
                 RemoveRowAt(Items.IndexOf(displaced));
             }
 
-            changed.Add(InsertRow(index, new ItemViewModel(item)));
+            changed.Add(InsertRow(index, CreateRow(item)));
         }
 
         return changed;
@@ -296,9 +296,10 @@ public partial class GridViewModel(
             }
             else if (isInRange)
             {
-                var index = FindInsertIndex(new ItemCursor(item!.ModifiedOn, item.Id));
-                highlighted.Add(InsertRow(index, new ItemViewModel(item)));
-                log.Add($"insert \"{item.Name}\": added at row {index}");
+                var inserted = CreateRow(item!);
+                var index = FindInsertIndex(inserted.Cursor);
+                highlighted.Add(InsertRow(index, inserted));
+                log.Add($"insert \"{inserted.Name}\": added at row {index}");
             }
             else
             {
@@ -325,8 +326,9 @@ public partial class GridViewModel(
 
     private void ApplyUpdate(ItemViewModel row, Item item, List<string> log, List<ItemViewModel> highlighted)
     {
-        var sortKeyChanged = row.ModifiedOn != item.ModifiedOn;
-        var changed = row.ApplyFrom(item);
+        var cursor = Sort.CursorOf(item);
+        var sortKeyChanged = Sort.Compare(row.Cursor, cursor) != 0;
+        var changed = row.ApplyFrom(item, cursor);
 
         if (sortKeyChanged)
         {
@@ -384,7 +386,7 @@ public partial class GridViewModel(
                 .Take(wanted + 1).ToListAsync();
             foreach (var row in rows.Take(wanted))
             {
-                highlighted.Add(InsertRow(0, new ItemViewModel(row)));
+                highlighted.Add(InsertRow(0, CreateRow(row)));
                 refilled++;
             }
 
@@ -480,9 +482,11 @@ public partial class GridViewModel(
     private IQueryable<Item> FilteredItems(AppDbContext context) =>
         Filter is null ? context.Items : context.Items.Where(Filter);
 
+    private ItemViewModel CreateRow(Item item) => new(item, Sort.CursorOf(item));
+
     private ItemViewModel AppendRow(Item item)
     {
-        var row = new ItemViewModel(item);
+        var row = CreateRow(item);
         loadedById[row.Id] = row;
         Items.Add(row);
         return row;

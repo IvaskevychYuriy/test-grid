@@ -14,5 +14,7 @@ public interface IItemSort
 
     IQueryable<Item> NotAfter(IQueryable<Item> items, ItemCursor cursor);
 
+    ItemCursor CursorOf(Item item);
+
     int Compare(ItemCursor first, ItemCursor second);
 }

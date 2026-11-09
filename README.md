@@ -1,3 +1,8 @@
+# NOTES
+
+Draft design artifact - https://claude.ai/artifact/QssgstBRjJ7MgcvnjtLj33#ff28d48a-8fc4
+Code that does implement it (logic drifted a bit) is in `GridViewModel.ReconcileAsync`. Comparison diff is in the `./design/review-1.md` 
+
 # TestGrid
 
 Desktop app (.NET 10, Avalonia 12, CommunityToolkit.Mvvm) that shows items from a local SQLite database in a custom `GridView` component.
