@@ -5,7 +5,7 @@ namespace TestGrid.Data;
 
 public class DbSeeder(IDbContextFactory<AppDbContext> contextFactory)
 {
-    public const int SeedRowCount = 100;
+    public const int SeedRowCount = 200;
 
     private const int SeedHistoryDays = 30;
 
